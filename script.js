@@ -72,9 +72,9 @@ const messageZone = document.querySelector(".message-zone");
 const textarea = document.querySelector("#chat-zone");
 const sendBtn = document.querySelector("#submit-chat");
 
-function addMessage(text) {
+function addMessage(text, type) {
   const message = document.createElement("div");
-  message.classList.add("message-user");
+  message.classList.add(type === "user" ? "message-user" : "message-bot");
 
   const p = document.createElement("p");
   p.textContent = text;
@@ -86,14 +86,24 @@ function addMessage(text) {
 }
 
 
-sendBtn.addEventListener("click", () => {
+sendBtn.addEventListener("click", async () => {
   const text = textarea.value.trim();
   if (!text) return;
 
-  addMessage(text);
-  
+  addMessage(text, "user");
   textarea.value = "";
+
+  // appel IA
+  const res = await fetch("http://localhost:3000/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text })
+  });
+
+  const data = await res.json();
+  addMessage(data.reply, "bot");
 });
+
 
 
 textarea.addEventListener("keydown", (e) => {
