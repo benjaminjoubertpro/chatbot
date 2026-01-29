@@ -113,3 +113,25 @@ textarea.addEventListener("keydown", (e) => {
   }
 });
 
+// Gestion déroulement du textarea
+
+const MAX_LINES = 8;
+const LINE_HEIGHT = 22; // à ajuster selon ton CSS
+
+textarea.addEventListener("input", () => {
+  textarea.style.height = "auto";
+
+  const maxHeight = LINE_HEIGHT * MAX_LINES;
+
+  if (textarea.scrollHeight <= maxHeight) {
+    textarea.style.height = textarea.scrollHeight + "px";
+    textarea.style.overflowY = "hidden";
+  } else {
+    textarea.style.height = maxHeight + "px";
+    textarea.style.overflowY = "auto";
+  }
+
+
+
+});
+
