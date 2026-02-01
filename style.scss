@@ -33,30 +33,9 @@ body {
     var(--bg);
 }
 
-section {
-  min-height: 100svh;
-  display: grid;
-  place-items: center;
-  padding: 32px 16px;
-}
 
-.container {
-  width: 100%;
-  max-width: 720px;
-  display: grid;
-  gap: 16px;
-}
 
-.card {
-  background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-}
 
-.header {
-  padding: 20px 20px 0 20px;
-}
 
 .title {
   margin: 0;
@@ -70,12 +49,6 @@ section {
   font-size: 14px;
 }
 
-.form {
-  display: grid;
-  grid-template-columns: 1fr 160px;
-  gap: 12px;
-  padding: 20px;
-}
 
 @media (max-width: 520px) {
   .form {
@@ -295,12 +268,13 @@ section {
 
 
 .chat-zone {
-  display: grid;
-  grid-template-columns: 6fr 1fr;
+  display: flex;
+  justify-content: space-between;
   gap: 12px;
   min-height: 48px;
   max-height: 120px;
   bottom: 5px;
+  align-items: flex-end;
 
   textarea {
     padding: 12px;
@@ -317,6 +291,9 @@ section {
     scrollbar-color: #ffffff #00000020;
     scrollbar-width: thin;
     line-height: 1.4;
+    max-height: calc(1.4em * 8);
+    overflow-y: auto;
+    width: 100%;
 
 
   }

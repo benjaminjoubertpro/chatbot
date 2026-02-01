@@ -1,59 +1,6 @@
-const form = document.querySelector("#form");
-const firstName = document.querySelector("#firstName");
-const age = document.querySelector("#age");
-const output = document.querySelector("#output");
-const allusers = document.querySelector("#allusers");
-
-const users = [
-  { firstName: "Jean", age: 54, statut: "Majeur" },
-  { firstName: "Daniel", age: 35, statut: "Majeur" }
-];
-
-function cleanFirstName(value) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/^./, letter => letter.toUpperCase());
-}
-
-function renderUsers() {
-  allusers.innerHTML = users
-    .map(u => `<li>${u.firstName} — ${u.age} ans (${u.statut})</li>`)
-    .join("");
-}
-
-renderUsers();
-
-form.addEventListener("submit", function (event) {
-  event.preventDefault();
-
-  const prenom = cleanFirstName(firstName.value);
-  const ageRaw = age.value.trim();
-  const ageNumber = Number(ageRaw);
-
-  if (prenom === "") {
-    output.textContent = "Tu dois rentrer un nom";
-    return;
-  }
-
-  if (ageRaw === "") {
-    output.textContent = "Tu dois rentrer un âge";
-    return;
-  }
-
-  if (!Number.isInteger(ageNumber)) {
-    output.textContent = "Âge invalide";
-    return;
-  }
-
-  const statut = ageNumber < 18 ? "Mineur" : "Majeur";
-
-  users.push({ firstName: prenom, age: ageNumber, statut });
-  renderUsers();
-
-  output.textContent = `Tu es ${prenom} et tu as ${ageNumber} ans`;
-  form.reset();
-});
+/* =========================
+   OUVERTURE / FERMETURE CHAT
+========================= */
 
 const chatbot = document.querySelector(".chatbot");
 const chat = document.querySelector("#chat");
@@ -68,43 +15,112 @@ closeChat.addEventListener("click", () => {
 });
 
 
+/* =========================
+   ZONE DE MESSAGES
+========================= */
+
 const messageZone = document.querySelector(".message-zone");
 const textarea = document.querySelector("#chat-zone");
 const sendBtn = document.querySelector("#submit-chat");
 
-function addMessage(text, type) {
+
+/* =========================
+   AJOUT MESSAGE USER
+========================= */
+
+function addUserMessage(text) {
   const message = document.createElement("div");
-  message.classList.add(type === "user" ? "message-user" : "message-bot");
+  message.classList.add("message-user");
 
   const p = document.createElement("p");
   p.textContent = text;
 
   message.appendChild(p);
   messageZone.appendChild(message);
-
   messageZone.scrollTop = messageZone.scrollHeight;
 }
 
+
+/* =========================
+   AJOUT MESSAGE BOT (VIDE)
+========================= */
+
+function createBotMessage() {
+  const message = document.createElement("div");
+  message.classList.add("message-bot");
+
+  const p = document.createElement("p");
+  message.appendChild(p);
+
+  messageZone.appendChild(message);
+  messageZone.scrollTop = messageZone.scrollHeight;
+
+  return p;
+}
+
+
+/* =========================
+   ECRITURE PROGRESSIVE DU BOT
+========================= */
+
+function typeMessage(text, element, speed = 20) {
+  let index = 0;
+
+  const interval = setInterval(() => {
+    element.textContent += text[index];
+    index++;
+
+    if (index >= text.length) {
+      clearInterval(interval);
+    }
+  }, speed);
+}
+
+
+/* =========================
+   ENVOI MESSAGE
+========================= */
 
 sendBtn.addEventListener("click", async () => {
   const text = textarea.value.trim();
   if (!text) return;
 
-  addMessage(text, "user");
+  // message utilisateur
+  addUserMessage(text);
+
+  // reset textarea
   textarea.value = "";
+  textarea.style.height = "auto";
+  textarea.style.overflowY = "hidden";
 
-  // appel IA
-  const res = await fetch("http://localhost:3000/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: text })
-  });
+  // message bot "en attente"
+  const botParagraph = createBotMessage();
+  botParagraph.textContent = "Le bot écrit…";
 
-  const data = await res.json();
-  addMessage(data.reply, "bot");
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await res.json();
+
+    // on efface le texte "Le bot écrit…"
+    botParagraph.textContent = "";
+
+    // écriture progressive
+    typeMessage(data.reply, botParagraph);
+
+  } catch (error) {
+    botParagraph.textContent = "Erreur du serveur.";
+  }
 });
 
 
+/* =========================
+   ENVOI AVEC ENTREE
+========================= */
 
 textarea.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
@@ -113,10 +129,13 @@ textarea.addEventListener("keydown", (e) => {
   }
 });
 
-// Gestion déroulement du textarea
+
+/* =========================
+   AUTO-RESIZE TEXTAREA
+========================= */
 
 const MAX_LINES = 8;
-const LINE_HEIGHT = 22; // à ajuster selon ton CSS
+const LINE_HEIGHT = 22;
 
 textarea.addEventListener("input", () => {
   textarea.style.height = "auto";
@@ -130,8 +149,4 @@ textarea.addEventListener("input", () => {
     textarea.style.height = maxHeight + "px";
     textarea.style.overflowY = "auto";
   }
-
-
-
 });
-
